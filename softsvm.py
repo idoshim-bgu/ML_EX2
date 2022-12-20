@@ -13,6 +13,24 @@ def softsvm(l, trainX: np.array, trainy: np.array):
     :param trainy: numpy array of size (m, 1) containing the labels of the training sample
     :return: linear predictor w, a numpy array of size (d, 1)
     """
+    d = len(trainX[0])
+    m = len(trainX)
+    u = np.append(np.zeros(d), np.full(m, 1/m))
+    v = np.append(np.zeros(m), np.ones(m))
+    H = np.block([
+                [np.identity(d) * 2*l, np.zeros((d,m))],
+                [ np.zeros((m,d)),  np.zeros((m,m))]
+                ])
+    yXi = np.copy(trainX)
+    for i in range(len(yXi)):
+        yXi[i] = yXi[i] * trainy[i]
+    A = np.block([
+        [np.zeros((m,d)), np.identity(m)],
+        [yXi, np.identity(m)]
+    ])
+    solvers.options['show_progress'] = False
+    sol = solvers.qp(matrix(H), matrix(u), -matrix(A), -matrix(v))
+
 
     """
     for quadratic problem:
@@ -20,7 +38,7 @@ def softsvm(l, trainX: np.array, trainy: np.array):
         Az>=v
 
         z = {w1,...,wd,xi1,...,xim}
-        H = block matrix  of
+        H = block matrix d+mXd+m of
             {
                 2l*Id   0
                 0       0
@@ -33,7 +51,8 @@ def softsvm(l, trainX: np.array, trainy: np.array):
             {yi*xi}    Im
         }
     """
-    raise NotImplementedError()
+
+    return np.array(sol["x"][:d])
 
 def simple_test():
     # load question 2 data
@@ -58,12 +77,20 @@ def simple_test():
     assert isinstance(w, np.ndarray), "The output of the function softsvm should be a numpy array"
     assert w.shape[0] == d and w.shape[1] == 1, f"The shape of the output should be ({d}, 1)"
 
+    # count = 0
+    # for i in range(len(testX)):
+    #     if (np.sign(testX[i] @ w)[0] == np.sign(testy[i])):
+    #         count +=1
+    # print(count/len(testy))
+
     # get a random example from the test set, and classify it
     i = np.random.randint(0, testX.shape[0])
     predicty = np.sign(testX[i] @ w)
 
     # this line should print the classification of the i'th test sample (1 or -1).
     print(f"The {i}'th test sample was classified as {predicty}")
+
+
 
 
 if __name__ == '__main__':

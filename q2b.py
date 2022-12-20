@@ -52,17 +52,30 @@ def get_graph_data(train_sizes, lambdas, n):
     return error_data, err_mins, err_maxs, train_errs
 
 def main():
-    sample_size = 100
     lambdas = [10**i for i in range(1,11)]
-    test_errors, err_mins, err_maxs, train_error = get_graph_data(sample_size, lambdas, 10)
+    test_errors, err_mins, err_maxs, train_error = get_graph_data(100, lambdas, 10)
 
     plt.style.use('seaborn-whitegrid')
     plt.xlabel("lambda")
     plt.ylabel("mean error")
-    plt.title("mean error versus lambda with 100 sample size")
-    plt.errorbar([f"10^{i}" for i in range(1,11)], test_errors, yerr=[err_mins,err_maxs], marker='o')
-    plt.plot( train_error)
-    plt.legend(["train sample", "test sample"], loc="upper left")
+    plt.title("mean error versus lambda")
+    plt.errorbar([f"10^{i}" for i in range(1,11)], test_errors, yerr=[err_mins,err_maxs], label="test sample 100", color="tab:blue")
+    plt.plot( train_error, label="train sample 100", color="tab:green")
+    
+    
+    lambdas = [10**i for i in [1,3,5,8]]
+    test_errors, err_mins, err_maxs, train_error = get_graph_data(1000, lambdas, 1)
+    plt.plot([f"10^{i}" for i in [1,3,5,8]], train_error, "o", label="train sample 1000", color="tab:olive")
+    plt.plot([f"10^{i}" for i in [1,3,5,8]], test_errors, "o", label="test sample 1000", color="tab:cyan")
+
+    #get handles and labels
+    handles, labels = plt.gca().get_legend_handles_labels()
+
+    #specify order of items in legend
+    order = [3,0,2,1]
+
+    #add legend to plot
+    plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order], loc="upper left")
 
     plt.show()
     

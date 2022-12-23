@@ -21,6 +21,7 @@ def softsvm(l, trainX: np.array, trainy: np.array):
                 [np.identity(d) * 2*l, np.zeros((d,m))],
                 [ np.zeros((m,d)),  np.zeros((m,m))]
                 ])
+    H = H + np.identity(H.shape[0]) * np.exp(-10)
     yXi = np.array([trainy[i] * trainX[i] for i in range(m)])
     A = np.block([
         [np.zeros((m,d)), np.identity(m)],

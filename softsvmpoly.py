@@ -2,6 +2,11 @@ import numpy as np
 from cvxopt import solvers, matrix, spmatrix, spdiag, sparse
 import matplotlib.pyplot as plt
 
+def poly_kernel(x1,x2, k):
+    return (x1.dot(x2) + 1)**k
+
+def create_gramm(trainX, k):
+    return np.array([[poly_kernel(x1,x2,k) for x1 in trainX] for x2 in trainX])
 
 # todo: complete the following functions, you may add auxiliary functions or define class to help you
 def softsvmpoly(l: float, k: int, trainX: np.array, trainy: np.array):
@@ -13,7 +18,44 @@ def softsvmpoly(l: float, k: int, trainX: np.array, trainy: np.array):
     :param trainy: numpy array of size (m, 1) containing the labels of the training sample
     :return: numpy array of size (m, 1) which describes the coefficients found by the algorithm
     """
-    raise NotImplementedError()
+    G = create_gramm(trainX,k)
+    d = len(trainX[0])
+    m = len(trainX)
+    u = np.append(np.zeros(m), np.full(m, 1/m))
+    v = np.append(np.zeros(m), np.ones(m))
+    H = np.block([
+                [G * 2*l, np.zeros((m,m))],
+                [ np.zeros((m,m)),  np.zeros((m,m))]
+                ])
+    H = H + np.identity(H.shape[0]) * np.exp(-10)
+    yGi = np.array([trainy[i] * G[i] for i in range(m)])
+    A = np.block([
+        [np.zeros((m,m)), np.identity(m)],
+        [yGi, np.identity(m)]
+    ])
+    solvers.options['show_progress'] = False
+    sol = solvers.qp(matrix(H), matrix(u), -matrix(A), -matrix(v))
+    return np.array(sol["x"][:m])
+
+    """
+    for quadratic problem:
+        1/2 z^T*H*z + <u,z>
+        Az>=v
+
+        z = {a1,...,am,xi1,...,xim}
+        H = block matrix 2mX2m of
+            {
+                2lG   0
+                0   0
+            }
+        u = {0,...m...,0,1/m,...m..., 1/m }
+        v = {0,...m...,0,1,...m..., 1}
+        A = block matrix 2mX2m of
+        {
+            0          Im
+            {yi*G[i]}    Im
+        }
+    """
 
 
 def simple_test():
@@ -36,7 +78,7 @@ def simple_test():
 
     # tests to make sure the output is of the intended class and shape
     assert isinstance(w, np.ndarray), "The output of the function softsvmbf should be a numpy array"
-    assert w.shape[0] == 1 and w.shape[1] == 1, f"The shape of the output should be ({m}, 1)"
+    assert w.shape[0] == m and w.shape[1] == 1, f"The shape of the output should be ({m}, 1)"
 
 
 if __name__ == '__main__':

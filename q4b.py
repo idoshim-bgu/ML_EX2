@@ -1,19 +1,36 @@
+from softsvmpoly import softsvmpoly, predict_with_alpha
 from softsvm import softsvm
-from softsvmpoly import softsvmpoly
 import numpy as np
 import matplotlib.pyplot as plt
 
-def _soft_svm_poly(params,trainX, trainY):
-    return softsvmpoly(params[0], params[1], trainX, trainY)
+def _soft_svm_poly(params, trainX, trainY):
+    alphas = softsvmpoly(params[0], params[1], trainX, trainY)
+    return predict_with_alpha(alphas,trainX,params[1])
 
-def test_predictor(pred, testX, testY):
+def test_softsvmpoly(pred, testX, testY):
     count = 0
     for i in range(testX.shape[0]):
-        if pred(np.sign(testX[i].dot(pred)) != testY[i]):
+        if pred(testX[i]) != np.sign(testY[i]):
             count += 1
     return count / testY.shape[0]
 
-def k_fold_validation(k, params,trainX, trainY,learning_algo):
+def test_softsvm(pred, testX, testY):
+    count = 0
+    for i in range(testX.shape[0]):
+        if np.sign(np.dot(testX[i], pred)) != np.sign(testY[i]):
+            count += 1
+    return count / testY.shape[0]
+
+def k_fold_validation(k, params,trainX, trainY,learning_algo, test_pred):
+    """
+    :param k: number of folds.
+    :param params: a list of different parameter sets to test.
+    :param trainX: numpy array of size (m, d) containing the training sample
+    :param trainy: numpy array of size (m, 1) containing the labels of the training sample
+    :param learning_algo: a learning algorithm function that takes (param, trainX, trainY) and returns a predictor.
+    :param test_pred: a function to test the returned predictor, takes (pred, testX, testY) and returns error value.
+    :return: best predictor found with selected parameters.
+    """
     n_samples = trainX.shape[0]
     fold_size = n_samples // k
     param_error = []
@@ -30,36 +47,28 @@ def k_fold_validation(k, params,trainX, trainY,learning_algo):
             y_train = np.concatenate([trainY[:start], trainY[end:]])
 
             predictor = learning_algo(param,X_train,y_train)
-            errs.append(test_predictor(predictor,X_validation,y_validation))
+            errs.append(test_pred(predictor,X_validation,y_validation))
         param_error.append(np.mean(np.array(errs)))
-    print(params[np.argmin(param_error)])
+        print(f"The average validation error for {param} is {param_error[-1]}")
+    print(f"The selected pair is {params[np.argmin(param_error)]}")
     return learning_algo(params[np.argmin(param_error)],trainX, trainY)
 
-    
-def get_graph_data():
-    data = np.load('ex2q4_data.npz')
-    trainX = data['Xtrain']
-    trainy = data['Ytrain']
-
-    ret1 = []
-    ret2 = []
-
-    for i in range(len(trainX)):
-        print(trainX[i])
-        if trainy[i] == 1:
-            ret1.append(trainX[i])
-        else:
-            ret2.append(trainX[i])
-    
-    return ret1, ret2
-
 def main():
+    k = 5
     data = np.load('ex2q4_data.npz')
     trainX = data['Xtrain']
     trainy = data['Ytrain']
+    testY = data['Ytest']
+    testX = data['Xtest']
+    print("results for k fold cross validation on soft SVM with poly kernel:")
     params = np.array(np.meshgrid([1,10,100], [2,5,8])).T.reshape(-1, 2)
-    k_fold_validation(5, params,trainX, trainy, _soft_svm_poly)
-    
+    predictor = k_fold_validation(k, params,trainX, trainy, _soft_svm_poly, test_softsvmpoly)
+    print(f"test error for selected parameters: {test_softsvmpoly(predictor,testX,testY)}")
+
+    print("results for k fold cross validation on soft SVM:")
+    params = np.array([1,10,100])
+    predictor = k_fold_validation(k, params,trainX, trainy, softsvm, test_softsvm)
+    print(f"test error for selected parameters: {test_softsvm(predictor,testX,testY)}")
 
 if __name__ == '__main__':
     main()

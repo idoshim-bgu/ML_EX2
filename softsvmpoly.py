@@ -2,6 +2,15 @@ import numpy as np
 from cvxopt import solvers, matrix, spmatrix, spdiag, sparse
 import matplotlib.pyplot as plt
 
+def predict_with_alpha(alpha, trainX, k):
+    def ret_func(x):
+        ret = 0
+        for i in range(trainX.shape[0]):
+            ret += alpha[i] * poly_kernel(trainX[i], x, k)
+        return np.sign(ret)
+    return ret_func
+    
+
 def poly_kernel(x1,x2, k):
     return (x1.dot(x2) + 1)**k
 

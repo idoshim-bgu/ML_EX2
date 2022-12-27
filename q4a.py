@@ -27,7 +27,6 @@ def main():
     plt.style.use('seaborn-whitegrid')
     plt.plot(label1[:, 0],label1[:, 1] ,"o" , color="blue")
     plt.plot(label2[:, 0],label2[:, 1] ,"o", color="red")
-    plt.legend(["label 1", "label -1"])
 
     plt.show()
     

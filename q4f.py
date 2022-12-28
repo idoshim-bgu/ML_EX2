@@ -9,6 +9,8 @@ def to_poly_feature_space(x,k):
         a = 1
         for i in range(x.shape[0]):
             a *= x[i]**deg[i]
+        deg.append(k - sum(deg))
+        a *= np.sqrt(multinomial(deg))
         ret.append(a)
     return np.array(ret)
 
@@ -22,20 +24,35 @@ def sequences(d, k):
                 result.append([i] + seq)
         return result
 
+def multinomial(lst):
+    res, i = 1, sum(lst)
+    i0 = lst.index(max(lst))
+    for a in lst[:i0] + lst[i0+1:]:
+        for j in range(1,a+1):
+            res *= i
+            res //= j
+            i -= 1
+    return res
+
 def w_from_alpha(alpha, trainX, k):
     w = np.array([])
     poly_trainX = np.apply_along_axis(to_poly_feature_space,1,trainX,k)
     return  np.matmul(alpha.T, poly_trainX)
 
-def get_graph_data(testX,w,k):
+def get_graph_data(testX,w,k, testY):
     ret1 = []
     ret2 = []
 
+    count = 0
     for i in range(testX.shape[0]):
         if np.sign(np.dot(w,to_poly_feature_space(testX[i],k))) > 0:
             ret1.append(testX[i])
         else:
             ret2.append(testX[i])
+        
+        if np.sign(np.dot(w,to_poly_feature_space(testX[i],k))) != np.sign(testY[i]):
+            count += 1
+    print(count/testY.shape[0])
     
     return np.array(ret1), np.array(ret2)
 
@@ -48,7 +65,7 @@ def main():
     testY = np.append(data['Ytest'],trainy)
     alpha = softsvmpoly(l, k,trainX,trainy)
     w = w_from_alpha(alpha,trainX,k)
-    label1, label2 = get_graph_data(testX, w, k)
+    label1, label2 = get_graph_data(testX, w, k,testY)
 
     plt.style.use('seaborn-whitegrid')
     plt.plot(label1[:, 0],label1[:, 1] ,"o", color="blue")

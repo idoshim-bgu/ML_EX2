@@ -14,9 +14,9 @@ def get_graph_data(ks):
         predictor = predict_with_alpha(alphas, trainX, k)
         grid = []
 
-        for j in np.arange(-1,1,0.01):
+        for j in np.arange(-1,1,0.005):
             temp = []
-            for i in np.arange(-1,1,0.01):
+            for i in np.arange(-1,1,0.005):
                 if predictor(np.array([i,j])) > 0:
                     temp.append([255,0,0])
                 else:

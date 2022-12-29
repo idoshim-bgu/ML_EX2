@@ -50,7 +50,7 @@ def k_fold_validation(k, params,trainX, trainY,learning_algo, test_pred):
             errs.append(test_pred(predictor,X_validation,y_validation))
         param_error.append(np.mean(np.array(errs)))
         print(f"The average validation error for {param} is {param_error[-1]}")
-    print(f"The selected pair is {params[np.argmin(param_error)]}")
+    print(f"The selected prameter is {params[np.argmin(param_error)]}")
     return learning_algo(params[np.argmin(param_error)],trainX, trainY)
 
 def main():
@@ -60,12 +60,12 @@ def main():
     trainy = data['Ytrain']
     testY = data['Ytest']
     testX = data['Xtest']
-    print("results for k fold cross validation on soft SVM with poly kernel:")
+    print(f"results for {k} fold cross validation on soft SVM with poly kernel:")
     params = np.array(np.meshgrid([1,10,100], [2,5,8])).T.reshape(-1, 2)
     predictor = k_fold_validation(k, params,trainX, trainy, _soft_svm_poly, test_softsvmpoly)
     print(f"test error for selected parameters: {test_softsvmpoly(predictor,testX,testY)}")
 
-    print("results for k fold cross validation on soft SVM:")
+    print(f"results for {k} fold cross validation on soft SVM:")
     params = np.array([1,10,100])
     predictor = k_fold_validation(k, params,trainX, trainy, softsvm, test_softsvm)
     print(f"test error for selected parameters: {test_softsvm(predictor,testX,testY)}")

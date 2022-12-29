@@ -1,7 +1,5 @@
-from softsvm import softsvm
 import numpy as np
 import matplotlib.pyplot as plt
-
 
 def get_graph_data():
     data = np.load('ex2q4_data.npz')
@@ -12,7 +10,6 @@ def get_graph_data():
     ret2 = []
 
     for i in range(len(trainX)):
-        print(trainX[i])
         if trainy[i] == 1:
             ret1.append(trainX[i])
         else:

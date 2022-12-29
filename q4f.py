@@ -35,7 +35,6 @@ def multinomial(lst):
     return res
 
 def w_from_alpha(alpha, trainX, k):
-    w = np.array([])
     poly_trainX = np.apply_along_axis(to_poly_feature_space,1,trainX,k)
     return  np.matmul(alpha.T, poly_trainX)
 
@@ -65,6 +64,7 @@ def main():
     testY = np.append(data['Ytest'],trainy)
     alpha = softsvmpoly(l, k,trainX,trainy)
     w = w_from_alpha(alpha,trainX,k)
+    print(w)
     label1, label2 = get_graph_data(testX, w, k,testY)
 
     plt.style.use('seaborn-whitegrid')
